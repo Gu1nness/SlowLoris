@@ -1,6 +1,6 @@
 This is a simple implementation in Python3 of the Slow Loris attack.
 
-=== What is Slow Loris ===
+## What is Slow Loris
 
 Slow Loris is a HTTP/HTTPs DoS attack that affects only threaded servers.
 Basically,
@@ -11,16 +11,17 @@ Thus, the threads stay open, and if enough sockets are open, there is no thread
 left to answer new requests.
 
 
-=== To use it ===
+## To use it
 
-Download the script by cloning the repo : ```git clone
-https://github.com/Gu1nness/SlowLorris.git ```
+Download the script: ```git clone https://github.com/Gu1nness/SlowLoris.git ```
 
-Execute the following command : ```python3 slow_loris.py <address>
 
-=== Get some help ===
+Execute the following command :  ``` python3 slow_loris.py <address> ```
+
+## Get some help
 
 The full list of options is here :
+
 ```
 usage: slow_loris.py [-h] [-n NUMBER] [-p PORT] ADDRESS
 
