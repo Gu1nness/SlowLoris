@@ -13,11 +13,11 @@ import random
 import argparse
 
 
-# Headers to be sent at the beginning of the connection.
+#Headers to be sent at the beginning of the connection
 HEADERS = [
-    "Mozilla/5.0 (Windows; U; Windows NT 5.1; de; rv:1.9.2.3) \
-     Gecko/20100401 Firefox/3.6.3 (FM Scene 4.6.1)",
-    "Accept-language: en-US"
+    b"User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64;\
+      rv:49.0) Gecko/20100101 Firefox/49.0",
+    b"Accept-language: en-US,en,q=0.5",
 ]
 
 def init_socket(ip_address):
