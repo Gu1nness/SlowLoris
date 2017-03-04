@@ -1,3 +1,6 @@
+#!/usr/bin/python3
+# -*- coding: utf-8 -*-
+
 """
 This is a simple python implementation of slow loris attack.
 Slow Loris only works on Apache servers, since it pops a thread for every new
